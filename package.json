@@ -1,0 +1,28 @@
+{
+  "name": "groundwater-quantity",
+  "description": "Full-Stack JavaScript with MongoDB, Express, AngularJS, and Node.js",
+  "version": "0.0.1",
+  "author": "New California Water Atlas",
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.4.x"
+  },
+  "dependencies": {
+    "express": "~4.1.0",
+    "lodash": "~2.4.1",
+    "forever": "~0.11.0",
+    "bower": "~1.3.1"
+  },
+  "devDependencies": {
+    "supertest": "~0.10.0",
+    "should": "~3.2.0",
+    "gulp": "^3.6.2",
+    "karma": "~0.12.0",
+    "karma-jasmine": "~0.2.1",
+    "karma-coverage": "~0.2.0",
+    "karma-chrome-launcher": "~0.1.2",
+    "karma-firefox-launcher": "~0.1.3",
+    "karma-phantomjs-launcher": "~0.1.2",
+    "awsbox": "~0.7.0"
+  }
+}

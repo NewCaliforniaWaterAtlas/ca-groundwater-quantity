@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>D3 GeoJSON in Leaflet</title>
+<link href='http://api.tiles.mapbox.com/mapbox.js/v1.4.0/mapbox.css' rel='stylesheet' />
+  <!--[if lte IE 8]>
+    <link href='http://api.tiles.mapbox.com/mapbox.js/v1.4.0/mapbox.ie.css' rel='stylesheet'>
+  <![endif]-->
+<style>
+  html, body, #map { 
+    height:  100%;
+    width: 100%; 
+    background:#020B26;
+    position: absolute;
+  }
+  
+  body { 
+    padding: 0;
+    margin: 0; 
+  }
+  
+  path { stroke-linejoin; round; stroke-linecap: round; fill: none}
+  path.river { stroke : #24b; }
+  path.road { stroke: #b29c92; }
+  path.water { stroke: #bcf; fill: #abf; }
+  // img { -webkit-filter: grayscale(100%) brightness(40%) contrast(150%);}
+
+</style>
+
+<body>
+<div id="map" class="dark"></div>
+
+<svg>
+    <defs>
+      <linearGradient id='grad1'>
+        <stop offset='0%' stop-color='#E8DDC9'/>
+        <stop offset='100%' stop-color='#E8DDC9' stop-opacity='0' />
+      </linearGradient>
+      <linearGradient id='grad2'>
+        <stop offset='0%' stop-color='#CCB479'/>
+        <stop offset='100%' stop-color='#CCB479' stop-opacity='0' />
+      </linearGradient>
+      <linearGradient id='grad3'>
+        <stop offset='0%' stop-color='#3C80A9'/>
+        <stop offset='100%' stop-color='#3C80A9' stop-opacity='0' />
+      </linearGradient>
+      <linearGradient id='grad4'>
+        <stop offset='0%' stop-color='#7de'/>
+        <stop offset='100%' stop-color='#7de' stop-opacity='0' />
+      </linearGradient>
+      <linearGradient id='grad5'>
+        <stop offset='0%' stop-color='#74DC9B'/>
+        <stop offset='100%' stop-color='#74DC9B' stop-opacity='0' />
+      </linearGradient>
+    </defs>
+  </svg>
+
+<script src="http://api.tiles.mapbox.com/mapbox.js/v1.4.0/mapbox.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+/* Experimental vector tile layer for Leaflet
+ * Uses D3 to render TopoJSON. Derived from a GeoJSON thing that was
+ * Originally by Ziggy Jonsson: http://bl.ocks.org/ZJONSSON/5602552
+ * Reworked by Nelson Minar: http://bl.ocks.org/NelsonMinar/5624141
+ */
+L.TileLayer.d3_topoJSON =  L.TileLayer.extend({
+    onAdd : function(map) {
+        L.TileLayer.prototype.onAdd.call(this,map);
+        this._path = d3.geo.path().projection(function(d) {
+            var point = map.latLngToLayerPoint(new L.LatLng(d[1],d[0]));
+            return [point.x,point.y];
+        });
+        this.on("tileunload",function(d) {
+            if (d.tile.xhr) d.tile.xhr.abort();
+            if (d.tile.nodes) d.tile.nodes.remove();
+            d.tile.nodes = null;
+            d.tile.xhr = null;
+        });
+    },
+    _loadTile : function(tile,tilePoint) {
+        var self = this;
+        this._adjustTilePoint(tilePoint);
+
+        if (!tile.nodes && !tile.xhr) {
+            tile.xhr = d3.json(this.getTileUrl(tilePoint),function(error, tjData) {
+                if (error) {
+                    console.log(error);
+                } else {
+                    var geoJson = topojson.feature(tjData, tjData.objects[self.options.layerName]);
+                    tile.xhr = null;
+                    tile.nodes = d3.select(map._container).select("svg").append("g");
+                    tile.nodes.selectAll("path")
+                        .data(geoJson.features).enter()
+                      .append("path")
+                        .attr("d", self._path)
+                        .attr("class", self.options.class)
+                        .attr("style", self.options.style);
+                }
+            });
+        }
+    }
+});
+
+map = L.map(map).setView([37.229722, -119.509444], 6);
+map._initPathRoot();
+
+// Add a fake GeoJSON line to coerce Leaflet into creating the <svg> tag that d3_geoJson needs
+new L.geoJson({"type": "LineString","coordinates":[[0,0],[0,0]]}).addTo(map);
+
+// Make the base map; a raster tile relief map from ESRI
+var esriRelief = 'http://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}'
+var basemap = L.tileLayer(esriRelief, {
+  attribution: '<a href="http://www.arcgis.com/home/item.html?id=9c5370d0b54f4de1b48a3792d7377ff2">ESRI shaded relief</a>, <a href="http://www.horizon-systems.com/NHDPlus/NHDPlusV2_home.php">NHDPlus v2</a>, OpenStreetMap',
+  maxZoom: 13
+});
+basemap.addTo(map);
+
+// Water Areas from OpenStreetMap
+new L.TileLayer.d3_topoJSON("http://tile.openstreetmap.us/vectiles-water-areas/{z}/{x}/{y}.topojson", {
+  class: "water",
+  layerName: "vectile",
+  style: ""
+}).addTo(map);
+
+var localURL = "http://localhost:3000/gwlfiltered/z/x/y.topojson";
+var remoteURL = "http://23.23.213.246:3000/gwlfiltered/{z}/{x}/{y}.topojson";
+var countiesURL = "http://localhost:3000/countiesall/z/x/y.topojson";
+
+
+// Highways from OpenStreetMap
+var roadSizes = {
+  "highway": "5px",
+  "major_road": "3px",
+  "minor_road": "1px",
+  "rail": "0px",
+  "path": "0.5px"
+};
+new L.TileLayer.d3_topoJSON("http://tile.openstreetmap.us/vectiles-highroad/{z}/{x}/{y}.topojson", {
+  class: "road",
+  layerName: "vectile",
+  style: function(d) { return "stroke-width: " + roadSizes[d.properties.kind]; }
+}).addTo(map);
+
+
+  // ['rate' = null] {marker-fill:#333;}
+  // ['rate' = 0] {marker-fill:#999;}
+  
+  // ['rate' < 0] {marker-fill:#e0f3f8;}
+  // ['rate' <= -0.25] {marker-fill:#abd9e9;}
+  // ['rate' <= -0.5] {marker-fill:#74add1;}
+  // ['rate' <= -0.75] {marker-fill:#4575b4;}
+  // ['rate' <= -1.0] {marker-fill:#313695;}
+
+  // ['rate' > 0] {marker-fill:#fee090;}
+  // ['rate' >= 0.25] {marker-fill:#fdae61;}
+  // ['rate' >= 0.5] {marker-fill:#f46d43;}
+  // ['rate' >= 0.75] {marker-fill:#d73027;} 
+  // ['rate' >= 1.0] {marker-fill:#a50026;}
+
+
+// var rateColors = {
+//   "null": "#333",
+//   "zero": "#999",
+//   "1": "#fee090",
+//   "2": "#fdae61",
+//   "3": "#f46d43",
+//   "4": "#d73027",
+//   "5": "#a50026"  
+// }
+
+new L.TileLayer.d3_topoJSON(remoteURL , {
+  class: "points",
+  layerName: "vectile",
+  style: function(d) { 
+    // var rate = rateColors[d.properties.rate];
+
+    // if (!rate) { rate = "#333;"; }
+    // if (rate == 0) { rate = "#999;"; }
+    // if (rate >= 0) { rate = "#999;"; }
+
+    return "fill: #a50026;";
+
+    // if (rate == 0) {
+    //   return "fill:#999;";
+    // } else if (rate >= 0) {
+    //   return "fill:#fee090;";
+    // } else if (rate >= 0.25) {
+    //   return "fill:#fdae61;";
+    // } else if (rate >= 0.50) {
+    //   return "fill:#f46d43;";
+    // } else if (rate >= 0.75) {
+    //   return "fill:#d73027;";
+    // } else if (rate >= 1.0) {
+    //   return "fill:#a50026;";
+    // } else {
+    //   return "fill:#333;";
+    // }
+
+  }
+
+}).addTo(map);
+
+var topPane = map._createPane('leaflet-top-pane', map.getPanes().mapPane);
+	// var mapboxTiles = L.mapbox.tileLayer('chachasikes.ca-gwl-wells').addTo(map);
+  var topLayer = new L.tileLayer('http://{s}.tile.stamen.com/toner-labels/{z}/{x}/{y}.png', {
+	  maxZoom: 17
+	}).addTo(map);
+	topPane.appendChild(topLayer.getContainer());
+	topLayer.setZIndex(7);
+</script>
+</body>

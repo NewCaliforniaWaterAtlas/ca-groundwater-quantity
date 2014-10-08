@@ -1,0 +1,21 @@
+{
+  "name": "ca-groundwater-quantity",
+  "version": "0.0.1",
+  "authors": [
+    "NewCaliforniaWaterAtlas"
+  ],
+  "description": "Full-Stack JavaScript with MongoDB, Express, AngularJS, and Node.js",
+  "main": "server.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/lib",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angularjs": "~1.2.26"
+  }
+}
