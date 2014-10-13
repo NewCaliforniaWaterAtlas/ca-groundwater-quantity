@@ -18,10 +18,10 @@ var karma = require('gulp-karma');
 
 gulp.task('styles', function () {
 	var stream =  gulp.src([
-		'public/lib/bootstrap/dist/css/bootstrap.css',
-		'public/lib/fontawesome/css/font-awesome.css',
-		'public/lib/mapbox.js/mapbox.css',
-		'public/lib/leaflet-fullscreen/Control.FullScreen.css',
+		'public/vendor/bootstrap/dist/css/bootstrap.css',
+		'public/vendor/fontawesome/css/font-awesome.css',
+		'public/vendor/mapbox.js/mapbox.css',
+		'public/vendor/leaflet-fullscreen/Control.FullScreen.css',
 		'public/css/style.css'
 	], {base: 'public/'})
 	.pipe(changed('public/build/css'))
@@ -38,11 +38,13 @@ gulp.task('styles', function () {
 
 gulp.task('scripts', function () {
 	var stream =  gulp.src([
-		'public/lib/angular/angular.js',
-		'public/lib/angular-ui-router/release/angular-ui-router.js',
-		// 'public/lib/ngstorage/ngStorage.js',
-		// 'public/lib/lodash/dist/lodash.js',
-		'public/lib/angular-bootstrap/ui-bootstrap-tpls.js'
+		'public/vendor/angular/angular.js',
+		'public/vendor/angular-ui-router/release/angular-ui-router.js',
+		// 'public/vendor/ngstorage/ngStorage.js',
+		// 'public/vendor/lodash/dist/lodash.js',
+		'public/vendor/angular-bootstrap/ui-bootstrap-tpls.js',
+		'public/js/core.js'
+
 	], {base: 'public/'})
 	.pipe(changed('public/build/js'))
 	// .pipe(jshint('.jshintrc'))
