@@ -1,4 +1,4 @@
-app.controller('mainController', [ '$scope','$state','$rootScope', function ($scope, $state, $rootScope) {
+angular.module('app').controller('mainController', [ '$scope','$state','$rootScope', function ($scope, $state, $rootScope) {
 	
 
 }]); // end mainController
@@ -7,7 +7,7 @@ app.controller('mainController', [ '$scope','$state','$rootScope', function ($sc
 //  Modals ======================================================================	
 
 
-app.controller('myModal', ['$scope', function ($scope) {
+angular.module('app').controller('myModal', ['$scope', function ($scope) {
   
   $scope.modalShown = false;
   $scope.toggleModal = function() {

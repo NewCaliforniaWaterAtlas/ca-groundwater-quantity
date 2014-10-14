@@ -43,7 +43,12 @@ gulp.task('scripts', function () {
 		// 'public/vendor/ngstorage/ngStorage.js',
 		// 'public/vendor/lodash/dist/lodash.js',
 		'public/vendor/angular-bootstrap/ui-bootstrap-tpls.js',
-		'public/js/core.js'
+		'public/js/core.js',
+		'public/js/services/well-service.js',
+		'public/js/factories/map-factory.js',
+		'public/js/controllers/map-controller.js',
+		'public/js/directives/map-directive.js'
+
 
 	], {base: 'public/'})
 	.pipe(changed('public/build/js'))
